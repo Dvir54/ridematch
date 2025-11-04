@@ -1,0 +1,564 @@
+---
+alwaysApply: true
+---
+**this is the project's plan, every task must regard this plan and be executed according to this plan.
+
+**IMPORTANT: Any changes or updates to project requirements, features, or architecture MUST be reflected in this plan file to maintain accuracy and serve as the single source of truth.
+
+# RideMatch Ride Sharing Platform
+
+## Architecture Overview
+
+**Microservices (Python FastAPI):**
+
+- `auth-service` - User authentication, JWT tokens, user profiles
+- `rides-service` - Ride CRUD, passenger requests, driver approvals
+- `search-service` - Intelligent matching algorithm with scoring
+- `feedback-service` - Ratings, reviews, user reputation
+- `notifications-service` - Email + WebSocket real-time notifications
+- `admin-service` - Monitoring, user management, dispute handling
+
+**Frontend (React TypeScript PWA):**
+
+- Driver dashboard (create rides, manage requests)
+- Passenger app (search rides, track requests)
+- Admin panel (monitoring, moderation)
+
+**Infrastructure:**
+
+- Docker Compose for local development
+- PostgreSQL per microservice + Redis for cache/sessions
+- Nginx as API Gateway/reverse proxy
+
+## Database Schema (Per Service)
+
+**auth-service (PostgreSQL):**
+
+- users: id, email, password_hash, role (driver/passenger/admin), profile (name, phone, preferences), is_active, created_at
+- JWT tokens in Redis for session management
+
+**rides-service (PostgreSQL):**
+
+- rides: id, driver_id, start_location (lat/lng, address), end_location, departure_time, capacity, available_seats, price, status, preferences (smoking, etc)
+- ride_requests: id, ride_id, passenger_id, status (pending/approved/rejected), requested_at, responded_at
+
+**search-service (PostgreSQL with PostGIS):**
+
+- Reads from rides-service DB (eventual consistency)
+- Geospatial indexes for efficient location-based queries
+
+**feedback-service (PostgreSQL):**
+
+- ratings: id, ride_id, from_user_id, to_user_id, score (1-5), comment, created_at
+- User aggregate ratings cached in Redis
+
+**notifications-service:**
+
+- notification_queue in Redis
+- Email templates for critical events
+- WebSocket connection registry
+
+## Matching Algorithm (Search Service)
+
+Score calculation (0-100%):
+
+- **Route Match (40%)**: Distance from passenger start/end to ride start/end using Haversine formula
+- **Time Match (25%)**: Departure time proximity (±2 hours window)
+- **Price Match (15%)**: Within passenger's budget range
+- **User Rating (10%)**: Driver rating (4.5+ stars = full points)
+- **Preferences Match (10%)**: Critical preferences alignment (smoking, gender if set)
+
+Return all rides with score ≥ 40%, sorted descending.
+
+## API Gateway Pattern
+
+Nginx routes:
+
+- `/api/auth/*` → auth-service:8001
+- `/api/rides/*` → rides-service:8002
+- `/api/search/*` → search-service:8003
+- `/api/feedback/*` → feedback-service:8004
+- `/api/notifications/*` → notifications-service:8005
+- `/api/admin/*` → admin-service:8006
+- `/ws/*` → notifications-service WebSocket
+
+## Real-time Notifications (Critical Only)
+
+**WebSocket events:**
+
+- Driver: New passenger request received
+- Passenger: Request approved/rejected by driver
+- Both: Ride starting soon (1 hour before)
+
+**Email events:**
+
+- Welcome email on signup
+- Ride confirmation (driver/passenger)
+- Request approval/rejection
+
+## Frontend Structure
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── driver/
+│   │   │   ├── CreateRide.tsx
+│   │   │   ├── ManageRequests.tsx
+│   │   │   └── MyRides.tsx
+│   │   ├── passenger/
+│   │   │   ├── SearchRides.tsx
+│   │   │   ├── RideCard.tsx (shows match score)
+│   │   │   └── MyRequests.tsx
+│   │   ├── admin/
+│   │   │   ├── UserManagement.tsx
+│   │   │   ├── RideMonitoring.tsx
+│   │   │   └── Analytics.tsx
+│   │   └── shared/
+│   │       ├── Map.tsx (Leaflet/Mapbox)
+│   │       └── Notifications.tsx
+│   ├── hooks/
+│   │   ├── useWebSocket.ts
+│   │   └── useAuth.ts
+│   ├── services/
+│   │   └── api.ts (Axios with JWT interceptor)
+│   └── App.tsx
+├── public/
+│   ├── manifest.json (PWA)
+│   └── service-worker.js
+└── package.json
+```
+
+## Screen Flow & Navigation Design
+
+### Authentication Flow
+
+**1. Welcome Screen (First Launch)**
+- Logo and tagline
+- "Sign In" button (primary)
+- "Sign Up" button (secondary)
+- Social login options (Google, Facebook) - optional
+
+**2. Sign Up Screen**
+- Email, password, confirm password
+- Name, phone number
+- "I agree to Terms & Conditions" checkbox
+- "Create Account" button
+- Link back to "Already have an account? Sign In"
+- After successful signup → Role Selection Screen
+
+**3. Sign In Screen**
+- Email and password fields
+- "Forgot Password?" link
+- "Sign In" button
+- Link to "Don't have an account? Sign Up"
+- After successful login → Role Selection Screen
+
+### Role Selection & Mode Switching
+
+**Design Pattern: Role Switcher (Uber/Lyft-style)**
+
+**4. Role Selection Screen (Post-Login)**
+- Shown immediately after first login or when no default mode is set
+- Two large cards:
+  - "I'm Driving" - icon + description: "Offer rides and earn money"
+  - "I Need a Ride" - icon + description: "Find rides going your way"
+- User taps one to enter that mode
+- Preference saved for next login (but can always switch)
+
+**5. Role Switcher Component (Always Available)**
+- Toggle button in app header/top bar
+- Shows current mode: "Driver Mode" or "Passenger Mode"
+- Tap to switch between modes instantly
+- Smooth transition with mode-specific bottom navigation
+
+### Driver Mode Screens (Bottom Navigation)
+
+**Bottom Nav Tabs: Home | My Rides | Requests | Profile**
+
+**Tab 1: Home (Driver Dashboard)**
+- Welcome message with driver stats
+- Quick actions: "Create New Ride" button (prominent)
+- Today's rides summary card
+- Pending requests count badge
+- Recent activity feed
+- Earnings summary (optional future feature)
+
+**Tab 2: My Rides**
+- List of driver's rides (upcoming, past, cancelled)
+- Filter by status: All | Upcoming | Completed | Cancelled
+- Each ride card shows:
+  - Route (start → end with map preview)
+  - Date & time
+  - Available seats / total capacity
+  - Confirmed passengers count
+  - Status badge
+- Tap ride → Ride Details Screen
+- Floating "+" button to create new ride
+
+**Tab 3: Requests**
+- List of pending passenger requests for driver's rides
+- Each request card shows:
+  - Passenger name, photo, rating
+  - Ride route
+  - Request time
+  - "Approve" and "Reject" buttons
+- Empty state: "No pending requests"
+- Badge notification on tab when new requests arrive
+
+**Tab 4: Profile**
+- User info (name, email, phone, photo)
+- Driver rating and review count
+- Vehicle information (if added)
+- Settings: Notifications, Privacy, Payment
+- Preferences: Smoking, Music, Pets, etc.
+- "Switch to Passenger Mode" button
+- Logout button
+
+**Additional Driver Screens:**
+
+**Create/Edit Ride Screen**
+- Start location (map picker + address autocomplete)
+- End location (map picker + address autocomplete)
+- Departure date & time picker
+- Available seats (number selector)
+- Price per seat
+- Preferences toggles (smoking, pets, music, etc.)
+- Notes/description textarea
+- "Publish Ride" button
+- Map preview showing route
+
+**Ride Details Screen (Driver View)**
+- Full ride information
+- Route map
+- List of confirmed passengers with contact info
+- List of pending requests (quick approve/reject)
+- "Edit Ride" button (if no confirmed passengers)
+- "Cancel Ride" button
+- "Start Ride" button (on departure day)
+- Chat with passengers option (future)
+
+### Passenger Mode Screens (Bottom Navigation)
+
+**Bottom Nav Tabs: Search | My Trips | Notifications | Profile**
+
+**Tab 1: Search Rides**
+- Start location input (current location button + autocomplete)
+- End location input (autocomplete)
+- Date & time picker
+- "Search Rides" button
+- Results list showing:
+  - Match score badge (40% minimum, color-coded)
+  - Driver name, photo, rating
+  - Route with departure time
+  - Price per seat
+  - Available seats
+  - Preferences icons
+  - "Request Ride" button
+- Sort by: Best Match | Earliest | Cheapest
+- Filter button: Price range, ratings, preferences
+- Empty state: "No rides found. Try adjusting your search"
+- Map toggle to see rides on map view
+
+**Tab 2: My Trips**
+- List of passenger's ride requests (pending, approved, completed, rejected)
+- Filter by status
+- Each trip card shows:
+  - Route
+  - Date & time
+  - Driver info and rating
+  - Status badge (Pending | Approved | Rejected | Completed)
+  - Price
+- Tap trip → Trip Details Screen
+- Empty state: "You haven't requested any rides yet"
+
+**Tab 3: Notifications**
+- Real-time notification feed
+- Types: Request approved/rejected, ride reminders, driver messages
+- Mark as read functionality
+- Clear all button
+- Empty state: "No new notifications"
+
+**Tab 4: Profile**
+- Same as driver profile but passenger-focused
+- Passenger rating (given by drivers)
+- Payment methods
+- Trip history stats
+- "Switch to Driver Mode" button
+- Logout button
+
+**Additional Passenger Screens:**
+
+**Ride Details Screen (Passenger View)**
+- Full ride information
+- Route map
+- Driver details (name, photo, rating, reviews)
+- Vehicle information
+- Other confirmed passengers (privacy-respecting)
+- Request status indicator
+- "Cancel Request" button (if pending)
+- "Rate Ride" button (after completion)
+- Contact driver button
+
+**Rating Screen (Post-Ride)**
+- Rate driver (1-5 stars)
+- Optional comment textarea
+- Quick feedback tags (On-time, Clean car, Friendly, Safe driving)
+- "Submit Rating" button
+- Skip option (discouraged)
+
+### Common Screens (Both Modes)
+
+**Notifications Settings**
+- Toggle email notifications
+- Toggle push notifications
+- Toggle WebSocket real-time alerts
+- Notification types preferences
+
+**User Settings**
+- Edit profile information
+- Change password
+- Privacy settings
+- Linked accounts (social logins)
+- Language preference
+- Help & Support
+- About & Terms
+
+**Help & Support**
+- FAQs accordion
+- Contact support form
+- Report a problem
+- Safety guidelines
+
+### Design System Notes
+
+**Bottom Navigation Specifications:**
+- 4 tabs per mode
+- Icons + labels
+- Active state: colored icon + label
+- Badge support for notifications/requests count
+- Always visible, persistent across screens
+
+**Color System:**
+- Driver mode: Blue accent color
+- Passenger mode: Green accent color
+- Role switcher button changes color based on mode
+- Match score badges: Green (80%+), Yellow (60-79%), Orange (40-59%)
+
+**Responsive Design:**
+- Mobile-first (320px - 768px)
+- Tablet support (768px - 1024px)
+- Desktop graceful fallback (1024px+)
+- PWA optimized with touch targets 44x44px minimum
+
+## Docker Compose Setup
+
+Services:
+
+- 6 FastAPI microservices (each with uvicorn)
+- 6 PostgreSQL databases (one per service)
+- Redis
+- Nginx (API gateway)
+- React frontend (development server)
+
+All services networked, health checks configured.
+
+## Implementation Phases
+
+**Phase 1: Foundation**
+
+### 1.1 Project Infrastructure Setup
+- [x] **1.1.1** Create root project directory structure
+- [ ] **1.1.2** Initialize git repository with .gitignore (Python, Node, Docker, .env files)
+- [ ] **1.1.2a** (OPTIONAL) Create GitHub repository and connect remote origin
+- [ ] **1.1.3** Create root README.md with project overview and setup instructions
+- [ ] **1.1.4** Create .env.example with all required environment variables template
+- [ ] **1.1.5** Create actual .env file locally (not committed) with development values
+
+### 1.2 Docker Infrastructure
+- [ ] **1.2.1** Create docker-compose.yml file structure
+- [ ] **1.2.2** Add PostgreSQL service for auth-service (auth-db)
+- [ ] **1.2.3** Add Redis service for session/cache management
+- [ ] **1.2.4** Configure shared Docker network for service communication
+- [ ] **1.2.5** Add health checks for PostgreSQL and Redis
+- [ ] **1.2.6** Test docker-compose up for infrastructure services only
+
+### 1.3 Auth Service - Project Structure
+- [ ] **1.3.1** Create services/auth-service directory structure
+- [ ] **1.3.2** Create auth-service Dockerfile with Python 3.11
+- [ ] **1.3.3** Create requirements.txt with FastAPI, SQLAlchemy, Alembic, psycopg2, python-jose, passlib, redis
+- [ ] **1.3.4** Create app/__init__.py and package structure
+- [ ] **1.3.5** Create app/config.py with Pydantic BaseSettings for environment variables
+- [ ] **1.3.6** Create .env.example for auth-service specific variables
+
+### 1.4 Auth Service - Database Setup
+- [ ] **1.4.1** Create app/database.py with SQLAlchemy engine and session configuration
+- [ ] **1.4.2** Configure PostgreSQL connection string from environment variables
+- [ ] **1.4.3** Create database connection pooling settings
+- [ ] **1.4.4** Add Redis connection setup in database.py
+- [ ] **1.4.5** Create get_db() dependency function for FastAPI
+
+### 1.5 Auth Service - Alembic Setup
+- [ ] **1.5.1** Initialize Alembic in auth-service (alembic init)
+- [ ] **1.5.2** Configure alembic.ini with correct database URL
+- [ ] **1.5.3** Update alembic/env.py to import SQLAlchemy Base
+- [ ] **1.5.4** Configure Alembic to auto-detect model changes
+- [ ] **1.5.5** Test Alembic connection to database
+
+### 1.6 Auth Service - User Model
+- [ ] **1.6.1** Create app/models/__init__.py
+- [ ] **1.6.2** Create app/models/user.py with User SQLAlchemy model
+- [ ] **1.6.3** Add fields: id, email (unique), password_hash, role (enum: driver/passenger/admin)
+- [ ] **1.6.4** Add fields: name, phone, is_active (boolean), created_at, updated_at
+- [ ] **1.6.5** Add preferences JSON field for user settings
+- [ ] **1.6.6** Create initial Alembic migration for users table
+- [ ] **1.6.7** Run migration to create users table in database
+
+### 1.7 Auth Service - Pydantic Schemas
+- [ ] **1.7.1** Create app/schemas/__init__.py
+- [ ] **1.7.2** Create app/schemas/user.py with UserBase schema
+- [ ] **1.7.3** Create UserCreate schema (for registration requests)
+- [ ] **1.7.4** Create UserResponse schema (for API responses, no password)
+- [ ] **1.7.5** Create UserUpdate schema (for profile updates)
+- [ ] **1.7.6** Create app/schemas/token.py with Token and TokenData schemas
+
+### 1.8 Auth Service - Utilities
+- [ ] **1.8.1** Create app/utils/__init__.py
+- [ ] **1.8.2** Create app/utils/password.py with bcrypt hash_password() function
+- [ ] **1.8.3** Add verify_password() function using bcrypt
+- [ ] **1.8.4** Create app/utils/dependencies.py
+- [ ] **1.8.5** Add get_current_user() dependency for protected endpoints
+- [ ] **1.8.6** Add get_current_active_user() dependency
+
+### 1.9 Auth Service - JWT Implementation
+- [ ] **1.9.1** Create app/services/__init__.py
+- [ ] **1.9.2** Create app/services/jwt_service.py
+- [ ] **1.9.3** Implement create_access_token() with python-jose
+- [ ] **1.9.4** Implement decode_access_token() with error handling
+- [ ] **1.9.5** Configure token expiration time (15 minutes for access, 7 days for refresh)
+- [ ] **1.9.6** Implement create_refresh_token() function
+- [ ] **1.9.7** Add Redis storage for refresh tokens (optional revocation)
+
+### 1.10 Auth Service - Business Logic
+- [ ] **1.10.1** Create app/services/auth_service.py
+- [ ] **1.10.2** Implement register_user() function with email validation
+- [ ] **1.10.3** Add duplicate email check before registration
+- [ ] **1.10.4** Implement authenticate_user() function for login
+- [ ] **1.10.5** Add get_user_by_email() helper function
+- [ ] **1.10.6** Add get_user_by_id() helper function
+- [ ] **1.10.7** Implement update_user_profile() function
+
+### 1.11 Auth Service - API Endpoints
+- [ ] **1.11.1** Create app/routers/__init__.py
+- [ ] **1.11.2** Create app/routers/auth.py with APIRouter
+- [ ] **1.11.3** Implement POST /register endpoint (returns user + token)
+- [ ] **1.11.4** Implement POST /login endpoint (returns access + refresh tokens)
+- [ ] **1.11.5** Implement POST /refresh endpoint (returns new access token)
+- [ ] **1.11.6** Implement POST /logout endpoint (optional: revoke token in Redis)
+- [ ] **1.11.7** Create app/routers/users.py with APIRouter
+- [ ] **1.11.8** Implement GET /me endpoint (protected, returns current user)
+- [ ] **1.11.9** Implement PUT /me endpoint (protected, updates user profile)
+- [ ] **1.11.10** Implement GET /users/{user_id} endpoint (protected, basic info only)
+
+### 1.12 Auth Service - FastAPI Application
+- [ ] **1.12.1** Create app/main.py with FastAPI application instance
+- [ ] **1.12.2** Configure CORS middleware for frontend integration
+- [ ] **1.12.3** Include auth router with prefix /api/auth
+- [ ] **1.12.4** Include users router with prefix /api/users
+- [ ] **1.12.5** Add startup event to test database connection
+- [ ] **1.12.6** Add shutdown event to close database connections
+- [ ] **1.12.7** Create GET /health endpoint for service health checks
+- [ ] **1.12.8** Add global exception handlers for common errors
+
+### 1.13 Auth Service - Docker Integration
+- [ ] **1.13.1** Add auth-service to docker-compose.yml
+- [ ] **1.13.2** Configure environment variables in docker-compose
+- [ ] **1.13.3** Set up depends_on for auth-db and redis
+- [ ] **1.13.4** Configure volume mounts for development (hot reload)
+- [ ] **1.13.5** Expose port 8001 for auth-service
+- [ ] **1.13.6** Add docker-compose command to run Alembic migrations on startup
+- [ ] **1.13.7** Test docker-compose up for auth-service
+
+### 1.14 Nginx API Gateway Setup
+- [ ] **1.14.1** Create nginx/ directory
+- [ ] **1.14.2** Create nginx/Dockerfile with nginx:alpine
+- [ ] **1.14.3** Create nginx/nginx.conf with basic configuration
+- [ ] **1.14.4** Add upstream for auth-service (http://auth-service:8001)
+- [ ] **1.14.5** Configure location /api/auth/* to proxy to auth-service
+- [ ] **1.14.6** Add CORS headers in nginx configuration
+- [ ] **1.14.7** Configure request/response logging
+- [ ] **1.14.8** Add nginx service to docker-compose.yml
+- [ ] **1.14.9** Expose port 80 for nginx gateway
+- [ ] **1.14.10** Test routing: http://localhost/api/auth/health
+
+### 1.15 Testing & Validation
+- [ ] **1.15.1** Test user registration with valid data
+- [ ] **1.15.2** Test duplicate email validation on registration
+- [ ] **1.15.3** Test login with correct credentials
+- [ ] **1.15.4** Test login with incorrect credentials (should fail)
+- [ ] **1.15.5** Test /me endpoint without token (should return 401)
+- [ ] **1.15.6** Test /me endpoint with valid token (should return user)
+- [ ] **1.15.7** Test token expiration handling
+- [ ] **1.15.8** Test refresh token flow
+- [ ] **1.15.9** Verify password hashing (plain text not stored)
+- [ ] **1.15.10** Test health endpoint returns 200 OK
+
+### 1.16 Documentation & Cleanup
+- [ ] **1.16.1** Access FastAPI auto-generated docs at /docs
+- [ ] **1.16.2** Verify all endpoints documented in Swagger UI
+- [ ] **1.16.3** Create services/auth-service/README.md with API documentation
+- [ ] **1.16.4** Document environment variables needed
+- [ ] **1.16.5** Document database schema and migrations
+- [ ] **1.16.6** Add code comments to complex functions
+- [ ] **1.16.7** Update root README.md with Phase 1 completion status
+- [ ] **1.16.8** Commit all changes to git with proper commit messages
+
+### 1.17 Optional: Logging & Monitoring
+- [ ] **1.17.1** Configure Python logging with appropriate levels
+- [ ] **1.17.2** Add request/response logging middleware
+- [ ] **1.17.3** Log authentication attempts (success/failure)
+- [ ] **1.17.4** Add structured logging with JSON format
+- [ ] **1.17.5** Configure log output to stdout for Docker
+
+**Phase 2: Core Rides**
+
+- Rides service (create, list, update)
+- Basic search without scoring
+- PostgreSQL with PostGIS setup
+
+**Phase 3: Intelligent Matching**
+
+- Implement scoring algorithm
+- Geospatial queries
+- User preferences handling
+
+**Phase 4: Requests & Approvals**
+
+- Passenger request rides
+- Driver approve/reject flow
+- Status tracking
+
+**Phase 5: Real-time & Notifications**
+
+- WebSocket service
+- Email integration (SMTP)
+- Real-time UI updates
+
+**Phase 6: Feedback & Ratings**
+
+- Post-ride rating system
+- User reputation scores
+- Rating display in search
+
+**Phase 7: Admin Panel**
+
+- User management
+- Ride monitoring
+- Analytics dashboard
+
+**Phase 8: PWA & Polish**
+
+- Service worker
+- Offline support
+- Mobile-responsive UI
+- Testing and bug fixes

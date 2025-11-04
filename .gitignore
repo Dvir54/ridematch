@@ -1,0 +1,268 @@
+# ===================================
+# RideMatch Project .gitignore
+# ===================================
+
+# ============= SECURITY =============
+# Environment variables (NEVER COMMIT SECRETS!)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets and credentials
+secrets/
+*.pem
+*.key
+*.cert
+
+# ============= PYTHON =============
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+virtualenv/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ============= NODE.JS / FRONTEND =============
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+
+# Production build
+/build
+/dist
+/.next
+/out
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# ============= DOCKER =============
+# Docker volumes
+docker-volumes/
+volumes/
+
+# Docker override files
+docker-compose.override.yml
+
+# ============= DATABASES =============
+# PostgreSQL
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+
+# Database dumps
+*.dump
+dump.sql
+
+# ============= IDEs & EDITORS =============
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains (PyCharm, IntelliJ, WebStorm)
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# ============= OS =============
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============= LOGS =============
+logs/
+*.log
+log/
+
+# ============= TEMPORARY FILES =============
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ============= ALEMBIC MIGRATIONS =============
+# Don't ignore migrations directory itself, but ignore any local state
+# services/*/alembic/versions/*.py are COMMITTED
+# But we might want to ignore some temp files:
+alembic.ini.bak
+
+# ============= REDIS / CACHE =============
+*.rdb
+dump.rdb
+
+# ============= CI/CD =============
+.github/workflows/*.log
+
+# ============= PROJECT SPECIFIC =============
+# Local development overrides
+docker-compose.local.yml
+
+# Generated documentation
+docs/_build/
+
+# Test outputs
+test-results/
+.pytest_cache/
+
+# ============= KEEP THESE =============
+# These should be tracked:
+# !.gitkeep
+# !.env.example
+# !docker-compose.yml
+# !Dockerfile
+
