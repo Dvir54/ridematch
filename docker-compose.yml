@@ -1,0 +1,56 @@
+services:
+  # Database Services
+  auth-db:
+    image: postgres:15-alpine
+    container_name: ridematch-auth-db
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME:-auth_db}
+      POSTGRES_USER: ${AUTH_DB_USER:-auth_user}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-auth_password}
+    ports:
+      - "${AUTH_DB_PORT:-5432}:5432"
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    networks:
+      - ridematch-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER:-auth_user} -d ${AUTH_DB_NAME:-auth_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ridematch-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ridematch-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Services will be added in subsequent phases
+  # Phase 1.3+: Microservices (auth, rides, search, feedback, notifications, admin)
+  # Phase 1.14: Nginx API Gateway
+  # Later: React Frontend
+
+networks:
+  ridematch-network:
+    driver: bridge
+    name: ridematch-network
+
+volumes:
+  # Database volumes for data persistence
+  auth-data:
+    name: ridematch-auth-data
+  redis-data:
+    name: ridematch-redis-data
+
