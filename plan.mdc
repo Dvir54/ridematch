@@ -384,26 +384,26 @@ All services networked, health checks configured.
 - [x] **1.2.6** Test docker-compose up for infrastructure services only
 
 ### 1.3 Auth Service - Project Structure
-- [ ] **1.3.1** Create services/auth-service directory structure
-- [ ] **1.3.2** Create auth-service Dockerfile with Python 3.11
-- [ ] **1.3.3** Create requirements.txt with FastAPI, SQLAlchemy, Alembic, psycopg2, python-jose, passlib, redis
-- [ ] **1.3.4** Create app/__init__.py and package structure
-- [ ] **1.3.5** Create app/config.py with Pydantic BaseSettings for environment variables
-- [ ] **1.3.6** Create .env.example for auth-service specific variables
+- [x] **1.3.1** Create services/auth-service directory structure
+- [x] **1.3.2** Create auth-service Dockerfile with Python 3.11
+- [x] **1.3.3** Create requirements.txt with FastAPI, SQLAlchemy, Alembic, psycopg2, python-jose, passlib, redis
+- [x] **1.3.4** Create app/__init__.py and package structure
+- [x] **1.3.5** Create app/config.py with Pydantic BaseSettings for environment variables
+- [x] **1.3.6** Create .env.example for auth-service specific variables
 
 ### 1.4 Auth Service - Database Setup
-- [ ] **1.4.1** Create app/database.py with SQLAlchemy engine and session configuration
-- [ ] **1.4.2** Configure PostgreSQL connection string from environment variables
-- [ ] **1.4.3** Create database connection pooling settings
-- [ ] **1.4.4** Add Redis connection setup in database.py
-- [ ] **1.4.5** Create get_db() dependency function for FastAPI
+- [x] **1.4.1** Create app/database.py with SQLAlchemy engine and session configuration
+- [x] **1.4.2** Configure PostgreSQL connection string from environment variables
+- [x] **1.4.3** Create database connection pooling settings
+- [x] **1.4.4** Add Redis connection setup in database.py
+- [x] **1.4.5** Create get_db() dependency function for FastAPI
 
 ### 1.5 Auth Service - Alembic Setup
-- [ ] **1.5.1** Initialize Alembic in auth-service (alembic init)
-- [ ] **1.5.2** Configure alembic.ini with correct database URL
-- [ ] **1.5.3** Update alembic/env.py to import SQLAlchemy Base
-- [ ] **1.5.4** Configure Alembic to auto-detect model changes
-- [ ] **1.5.5** Test Alembic connection to database
+- [x] **1.5.1** Initialize Alembic in auth-service (alembic init)
+- [x] **1.5.2** Configure alembic.ini with correct database URL
+- [x] **1.5.3** Update alembic/env.py to import SQLAlchemy Base
+- [x] **1.5.4** Configure Alembic to auto-detect model changes
+- [x] **1.5.5** Test Alembic connection to database
 
 ### 1.6 Auth Service - User Model
 - [ ] **1.6.1** Create app/models/__init__.py

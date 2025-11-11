@@ -1,0 +1,61 @@
+# Alembic Database Migrations
+
+This directory contains database migrations managed by Alembic.
+
+## Directory Structure
+
+- `alembic/` - Migration environment configuration
+  - `env.py` - Migration runtime environment (how to connect and run migrations)
+  - `script.py.mako` - Template for generating new migration files
+  - `versions/` - All migration files stored here (one file per migration)
+- `alembic.ini` - Alembic configuration file
+
+## Common Commands
+
+### Create a new migration (auto-detect model changes)
+```bash
+alembic revision --autogenerate -m "description of changes"
+```
+
+### Apply all pending migrations
+```bash
+alembic upgrade head
+```
+
+### Revert the last migration
+```bash
+alembic downgrade -1
+```
+
+### Show current database version
+```bash
+alembic current
+```
+
+### Show migration history
+```bash
+alembic history
+```
+
+### Generate SQL without executing (dry-run)
+```bash
+alembic upgrade head --sql
+```
+
+## How It Works
+
+1. You modify a model (e.g., add a field to User model)
+2. Run: `alembic revision --autogenerate -m "add phone to user"`
+3. Alembic compares Base.metadata (your models) to actual database
+4. Generates a migration file in versions/ with upgrade() and downgrade()
+5. Run: `alembic upgrade head` to apply the migration
+6. Database schema is now in sync with your models
+
+## Important Notes
+
+- Always review auto-generated migrations before applying
+- Always implement downgrade() functions for rollback capability
+- Commit migration files to version control
+- Never edit migrations that have been applied to production
+- If you create a new model, import it in env.py so Alembic can see it
+

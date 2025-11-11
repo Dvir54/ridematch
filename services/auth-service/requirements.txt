@@ -1,0 +1,25 @@
+# Web Framework & Server
+fastapi==0.104.1            # Modern, fast web framework for building APIs
+uvicorn[standard]==0.24.0   # ASGI server to run FastAPI (standard includes performance extras)
+
+# Database ORM & Migrations
+sqlalchemy==2.0.23          # SQL toolkit and ORM for database operations
+alembic==1.12.1             # Database migration tool (tracks schema changes)
+psycopg2-binary==2.9.9      # PostgreSQL adapter for Python
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0  # JWT token creation and validation
+passlib[bcrypt]==1.7.4            # Password hashing library with bcrypt algorithm
+python-multipart==0.0.6           # Required for FastAPI form data handling
+
+# Cache & Session Management
+redis==5.0.1                # Redis client for session storage and caching
+
+# Data Validation & Settings
+pydantic==2.5.0             # Data validation using Python type hints
+pydantic-settings==2.1.0    # Settings management from environment variables
+email-validator==2.1.0      # Email validation for Pydantic
+
+# Utilities
+python-dotenv==1.0.0        # Load environment variables from .env files
+
