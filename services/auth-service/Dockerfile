@@ -56,12 +56,17 @@ COPY ./app ./app
 COPY ./alembic ./alembic
 COPY ./alembic.ini ./alembic.ini
 
+# Copy entrypoint script that runs migrations on startup
+COPY ./entrypoint.sh ./entrypoint.sh
+
 # ============================================
 # Stage 5: Create Non-Root User (Security)
 # ============================================
 # Running as root in containers is a security risk
 # Create a dedicated user with limited permissions
-RUN useradd -m -u 1000 appuser && \
+# Also make entrypoint script executable
+RUN chmod +x ./entrypoint.sh && \
+    useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Switch to non-root user
@@ -79,6 +84,12 @@ EXPOSE 8001
 # Fails if 3 consecutive checks fail
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')" || exit 1
+
+# Entrypoint script handles:
+# 1. Waiting for database to be ready
+# 2. Running Alembic migrations
+# 3. Then executing the CMD below
+ENTRYPOINT ["./entrypoint.sh"]
 
 # Default command to run the application
 # uvicorn: ASGI server that runs FastAPI

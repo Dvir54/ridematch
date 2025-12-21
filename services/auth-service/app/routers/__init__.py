@@ -1,12 +1,8 @@
 """
-API Route Handlers (FastAPI Routers)
-
-Routers define API endpoints and their logic:
-- URL paths (e.g., /api/auth/login)
-- HTTP methods (GET, POST, PUT, DELETE)
-- Request/response handling
-- Endpoint documentation
-
-Each router file groups related endpoints together.
+API Routers - FastAPI routers defining API endpoints.
 """
 
+from app.routers.auth import router as auth_router
+from app.routers.users import router as users_router
+
+__all__ = ["auth_router", "users_router"]

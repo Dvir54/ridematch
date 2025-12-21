@@ -1,11 +1,27 @@
 """
 Pydantic Schemas for Request/Response Validation
 
-Schemas define the structure of:
-- API request bodies (what data comes IN)
-- API response bodies (what data goes OUT)
-- Data validation rules
+Schemas define API data contracts:
+- Request bodies: What data comes IN
+- Response bodies: What data goes OUT
+- Validation rules: Type checking, constraints, format validation
 
-Pydantic automatically validates data types, required fields, and constraints.
+Usage:
+    from app.schemas import UserCreate, UserResponse, Token
 """
 
+from app.schemas.user import UserBase, UserCreate, UserResponse, UserUpdate, UserPublic
+from app.schemas.token import Token, TokenData, TokenRefresh
+
+__all__ = [
+    # User schemas
+    "UserBase",
+    "UserCreate",
+    "UserResponse",
+    "UserUpdate",
+    "UserPublic",
+    # Token schemas
+    "Token",
+    "TokenData",
+    "TokenRefresh",
+]

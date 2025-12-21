@@ -1,7 +1,9 @@
 """
 Database Models (SQLAlchemy ORM)
 
-This module contains all SQLAlchemy models that define the database schema.
-Models represent database tables and their relationships.
+Contains models that define the database schema.
 """
 
+from app.models.user import User
+
+__all__ = ["User"]

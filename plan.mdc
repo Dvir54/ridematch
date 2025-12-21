@@ -406,78 +406,78 @@ All services networked, health checks configured.
 - [x] **1.5.5** Test Alembic connection to database
 
 ### 1.6 Auth Service - User Model
-- [ ] **1.6.1** Create app/models/__init__.py
-- [ ] **1.6.2** Create app/models/user.py with User SQLAlchemy model
-- [ ] **1.6.3** Add fields: id, email (unique), password_hash, role (enum: driver/passenger/admin)
-- [ ] **1.6.4** Add fields: name, phone, is_active (boolean), created_at, updated_at
-- [ ] **1.6.5** Add preferences JSON field for user settings
-- [ ] **1.6.6** Create initial Alembic migration for users table
-- [ ] **1.6.7** Run migration to create users table in database
+- [x] **1.6.1** Create app/models/__init__.py
+- [x] **1.6.2** Create app/models/user.py with User SQLAlchemy model
+- [x] **1.6.3** Add fields: id, email (unique), password_hash, is_admin (boolean) - Note: Changed from role enum to is_admin flag; users can be both driver and passenger
+- [x] **1.6.4** Add fields: name, phone, date_of_birth, gender, is_active, is_email_verified, email_verified_at, created_at, updated_at, last_login_at
+- [x] **1.6.5** Add preferences JSON field, driver/passenger ratings cache, and helper methods (age, to_dict, update_rating)
+- [x] **1.6.6** Create initial Alembic migration for users table
+- [x] **1.6.7** Run migration to create users table in database
 
 ### 1.7 Auth Service - Pydantic Schemas
-- [ ] **1.7.1** Create app/schemas/__init__.py
-- [ ] **1.7.2** Create app/schemas/user.py with UserBase schema
-- [ ] **1.7.3** Create UserCreate schema (for registration requests)
-- [ ] **1.7.4** Create UserResponse schema (for API responses, no password)
-- [ ] **1.7.5** Create UserUpdate schema (for profile updates)
-- [ ] **1.7.6** Create app/schemas/token.py with Token and TokenData schemas
+- [x] **1.7.1** Create app/schemas/__init__.py
+- [x] **1.7.2** Create app/schemas/user.py with UserBase schema
+- [x] **1.7.3** Create UserCreate schema (for registration requests)
+- [x] **1.7.4** Create UserResponse schema (for API responses, no password)
+- [x] **1.7.5** Create UserUpdate schema (for profile updates)
+- [x] **1.7.6** Create app/schemas/token.py with Token and TokenData schemas
 
 ### 1.8 Auth Service - Utilities
-- [ ] **1.8.1** Create app/utils/__init__.py
-- [ ] **1.8.2** Create app/utils/password.py with bcrypt hash_password() function
-- [ ] **1.8.3** Add verify_password() function using bcrypt
-- [ ] **1.8.4** Create app/utils/dependencies.py
-- [ ] **1.8.5** Add get_current_user() dependency for protected endpoints
-- [ ] **1.8.6** Add get_current_active_user() dependency
+- [x] **1.8.1** Create app/utils/__init__.py
+- [x] **1.8.2** Create app/utils/password.py with bcrypt hash_password() function
+- [x] **1.8.3** Add verify_password() function using bcrypt
+- [x] **1.8.4** Create app/utils/dependencies.py
+- [x] **1.8.5** Add get_current_user() dependency for protected endpoints
+- [x] **1.8.6** Add get_current_active_user() dependency
 
 ### 1.9 Auth Service - JWT Implementation
-- [ ] **1.9.1** Create app/services/__init__.py
-- [ ] **1.9.2** Create app/services/jwt_service.py
-- [ ] **1.9.3** Implement create_access_token() with python-jose
-- [ ] **1.9.4** Implement decode_access_token() with error handling
-- [ ] **1.9.5** Configure token expiration time (15 minutes for access, 7 days for refresh)
-- [ ] **1.9.6** Implement create_refresh_token() function
-- [ ] **1.9.7** Add Redis storage for refresh tokens (optional revocation)
+- [x] **1.9.1** Create app/services/__init__.py
+- [x] **1.9.2** Create app/services/jwt_service.py
+- [x] **1.9.3** Implement create_access_token() with python-jose
+- [x] **1.9.4** Implement decode_access_token() with error handling
+- [x] **1.9.5** Configure token expiration time (15 minutes for access, 7 days for refresh)
+- [x] **1.9.6** Implement create_refresh_token() function
+- [x] **1.9.7** Add Redis storage for refresh tokens (optional revocation)
 
 ### 1.10 Auth Service - Business Logic
-- [ ] **1.10.1** Create app/services/auth_service.py
-- [ ] **1.10.2** Implement register_user() function with email validation
-- [ ] **1.10.3** Add duplicate email check before registration
-- [ ] **1.10.4** Implement authenticate_user() function for login
-- [ ] **1.10.5** Add get_user_by_email() helper function
-- [ ] **1.10.6** Add get_user_by_id() helper function
-- [ ] **1.10.7** Implement update_user_profile() function
+- [x] **1.10.1** Create app/services/auth_service.py
+- [x] **1.10.2** Implement register_user() function with email validation
+- [x] **1.10.3** Add duplicate email check before registration
+- [x] **1.10.4** Implement authenticate_user() function for login
+- [x] **1.10.5** Add get_user_by_email() helper function
+- [x] **1.10.6** Add get_user_by_id() helper function
+- [x] **1.10.7** Implement update_user_profile() function
 
 ### 1.11 Auth Service - API Endpoints
-- [ ] **1.11.1** Create app/routers/__init__.py
-- [ ] **1.11.2** Create app/routers/auth.py with APIRouter
-- [ ] **1.11.3** Implement POST /register endpoint (returns user + token)
-- [ ] **1.11.4** Implement POST /login endpoint (returns access + refresh tokens)
-- [ ] **1.11.5** Implement POST /refresh endpoint (returns new access token)
-- [ ] **1.11.6** Implement POST /logout endpoint (optional: revoke token in Redis)
-- [ ] **1.11.7** Create app/routers/users.py with APIRouter
-- [ ] **1.11.8** Implement GET /me endpoint (protected, returns current user)
-- [ ] **1.11.9** Implement PUT /me endpoint (protected, updates user profile)
-- [ ] **1.11.10** Implement GET /users/{user_id} endpoint (protected, basic info only)
+- [x] **1.11.1** Create app/routers/__init__.py
+- [x] **1.11.2** Create app/routers/auth.py with APIRouter
+- [x] **1.11.3** Implement POST /register endpoint (returns user + token)
+- [x] **1.11.4** Implement POST /login endpoint (returns access + refresh tokens)
+- [x] **1.11.5** Implement POST /refresh endpoint (returns new access token)
+- [x] **1.11.6** Implement POST /logout endpoint (optional: revoke token in Redis)
+- [x] **1.11.7** Create app/routers/users.py with APIRouter
+- [x] **1.11.8** Implement GET /me endpoint (protected, returns current user)
+- [x] **1.11.9** Implement PUT /me endpoint (protected, updates user profile)
+- [x] **1.11.10** Implement GET /users/{user_id} endpoint (protected, basic info only)
 
 ### 1.12 Auth Service - FastAPI Application
-- [ ] **1.12.1** Create app/main.py with FastAPI application instance
-- [ ] **1.12.2** Configure CORS middleware for frontend integration
-- [ ] **1.12.3** Include auth router with prefix /api/auth
-- [ ] **1.12.4** Include users router with prefix /api/users
-- [ ] **1.12.5** Add startup event to test database connection
-- [ ] **1.12.6** Add shutdown event to close database connections
-- [ ] **1.12.7** Create GET /health endpoint for service health checks
-- [ ] **1.12.8** Add global exception handlers for common errors
+- [x] **1.12.1** Create app/main.py with FastAPI application instance
+- [x] **1.12.2** Configure CORS middleware for frontend integration
+- [x] **1.12.3** Include auth router with prefix /api/auth
+- [x] **1.12.4** Include users router with prefix /api/users
+- [x] **1.12.5** Add startup event to test database connection
+- [x] **1.12.6** Add shutdown event to close database connections
+- [x] **1.12.7** Create GET /health endpoint for service health checks
+- [x] **1.12.8** Add global exception handlers for common errors
 
 ### 1.13 Auth Service - Docker Integration
-- [ ] **1.13.1** Add auth-service to docker-compose.yml
-- [ ] **1.13.2** Configure environment variables in docker-compose
-- [ ] **1.13.3** Set up depends_on for auth-db and redis
-- [ ] **1.13.4** Configure volume mounts for development (hot reload)
-- [ ] **1.13.5** Expose port 8001 for auth-service
-- [ ] **1.13.6** Add docker-compose command to run Alembic migrations on startup
-- [ ] **1.13.7** Test docker-compose up for auth-service
+- [x] **1.13.1** Add auth-service to docker-compose.yml
+- [x] **1.13.2** Configure environment variables in docker-compose
+- [x] **1.13.3** Set up depends_on for auth-db and redis
+- [x] **1.13.4** Configure volume mounts for development (hot reload)
+- [x] **1.13.5** Expose port 8001 for auth-service
+- [x] **1.13.6** Add docker-compose command to run Alembic migrations on startup
+- [x] **1.13.7** Test docker-compose up for auth-service
 
 ### 1.14 Nginx API Gateway Setup
 - [ ] **1.14.1** Create nginx/ directory

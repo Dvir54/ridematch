@@ -23,7 +23,7 @@ from app.database import Base
 
 # Import all models here so Alembic can detect them
 # When you create new models, import them here!
-# from app.models.user import User  # Will import after creating the model
+from app.models import User  # Import User model for detection
 
 
 # ============================================

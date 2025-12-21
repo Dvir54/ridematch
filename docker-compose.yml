@@ -37,10 +37,74 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Services will be added in subsequent phases
-  # Phase 1.3+: Microservices (auth, rides, search, feedback, notifications, admin)
-  # Phase 1.14: Nginx API Gateway
-  # Later: React Frontend
+  # ============================================
+  # Microservices
+  # ============================================
+  
+  # Auth Service - User authentication, JWT tokens, user profiles
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: ridematch-auth-service
+    environment:
+      # Application settings
+      APP_NAME: "RideMatch Auth Service"
+      APP_VERSION: "1.0.0"
+      DEBUG: "true"
+      
+      # Database connection (matches auth-db service)
+      DATABASE_HOST: auth-db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${AUTH_DB_NAME:-auth_db}
+      DATABASE_USER: ${AUTH_DB_USER:-auth_user}
+      DATABASE_PASSWORD: ${AUTH_DB_PASSWORD:-auth_password}
+      
+      # Redis connection
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      
+      # JWT Authentication
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_MINUTES: 10080
+      
+      # CORS - Allow frontend origins
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost", "http://127.0.0.1:3000"]'
+      
+      # Security
+      BCRYPT_ROUNDS: 12
+    ports:
+      - "${AUTH_SERVICE_PORT:-8001}:8001"
+    volumes:
+      # Mount source code for hot reloading during development
+      - ./services/auth-service/app:/app/app:rw
+      - ./services/auth-service/alembic:/app/alembic:rw
+    networks:
+      - ridematch-network
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+
+  # Future services will be added in subsequent phases:
+  # - rides-service (Phase 2)
+  # - search-service (Phase 3)
+  # - feedback-service (Phase 6)
+  # - notifications-service (Phase 5)
+  # - admin-service (Phase 7)
+  # - nginx gateway (Phase 1.14)
+  # - React frontend
 
 networks:
   ridematch-network:

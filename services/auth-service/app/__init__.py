@@ -8,5 +8,5 @@ This service handles:
 - Session management via Redis
 """
 
-__version__ = "1.0.0"
-
+# Version is defined in config.py as the single source of truth
+# Access via: from app.config import settings; settings.app_version

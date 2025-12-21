@@ -1,15 +1,10 @@
 """
-Database Configuration and Session Management
+Database Configuration
 
-This module handles PostgreSQL and Redis connections for the auth service.
-- SQLAlchemy engine: Connection pool management
-- SessionLocal: Session factory for database transactions
-- Base: Foundation class for all ORM models
-- Redis client: Caching and session storage
-- FastAPI dependencies: Automatic session management
+PostgreSQL and Redis connection setup with session management.
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
@@ -17,11 +12,7 @@ import redis
 from app.config import settings
 
 
-# ============================================
-# PostgreSQL Setup
-# ============================================
-
-# Create database engine with connection pooling
+# PostgreSQL
 engine = create_engine(
     settings.database_url,  # postgresql://user:pass@host:port/db
     pool_pre_ping=True,     # Test connections before use (prevents stale connections)
@@ -30,24 +21,11 @@ engine = create_engine(
     max_overflow=10,       # Allow 10 additional connections (total 15 max)
 )
 
-# Create session factory
-# Sessions manage transactions and track changes
-SessionLocal = sessionmaker(
-    autocommit=False,  # Explicit transaction control
-    autoflush=False,   # Manual flush control
-    bind=engine
-)
-
-# Base class for all ORM models
-# All models inherit from this: class User(Base)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-# ============================================
-# Redis Setup
-# ============================================
-
-# Redis client for caching, sessions, and refresh tokens
+# Redis
 redis_client = redis.Redis(
     host=settings.redis_host,
     port=settings.redis_port,
@@ -59,21 +37,9 @@ redis_client = redis.Redis(
 )
 
 
-# ============================================
 # FastAPI Dependencies
-# ============================================
-
 def get_db() -> Generator[Session, None, None]:
-    """
-    Provides database session for each request.
-    Automatically handles session creation and cleanup.
-    
-    Usage:
-        @router.post("/register")
-        def register(db: Session = Depends(get_db)):
-            db.add(new_user)
-            db.commit()
-    """
+    """Provide database session per request with automatic cleanup."""
     db = SessionLocal()
     try:
         yield db
@@ -82,38 +48,28 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_redis() -> redis.Redis:
-    """
-    Provides Redis client for caching and session management.
-    
-    Usage:
-        @router.get("/data")
-        def get_data(cache: redis.Redis = Depends(get_redis)):
-            return cache.get("key")
-    """
+    """Provide Redis client for caching."""
     return redis_client
 
 
-# ============================================
-# Utility Functions
-# ============================================
-
+# Connection Tests
 def test_db_connection() -> bool:
-    """Test PostgreSQL connection. Returns True if successful."""
+    """Test PostgreSQL connection."""
     try:
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         return True
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        print(f"Database connection failed: {e}")
         return False
 
 
 def test_redis_connection() -> bool:
-    """Test Redis connection. Returns True if successful."""
+    """Test Redis connection."""
     try:
         redis_client.ping()
         return True
     except Exception as e:
-        print(f"❌ Redis connection failed: {e}")
+        print(f"Redis connection failed: {e}")
         return False
